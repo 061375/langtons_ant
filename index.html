@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Langton's Ant in Javascript By Jeremy Heminger</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .container {
+            margin: 0;
+        }
+        .canvas {
+            position: relative;
+        }
+        .canvas canvas {
+            position: absolute;
+            top:0px;
+            left: 0px;
+        }
+            #grid {z-index: 1;}
+            #ant {z-index: 2;}
+        #info {
+            float: right;
+            overflow-y: auto;
+            background: #556c70;
+            color: #fff;
+            padding: 10px;
+            margin: 0px;
+        }
+            #todo ol li {
+                color: #ffe700;
+            }
+    </style>
+   
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="js/html5CanvasHandler.class.js"></script>
+    <script src="js/ant.1.0.js"></script>
+    <script>
+        (function ( $ , window , document , undefined) {
+            $(document).ready(function(){
+                $('#info').css("height",$(window).height());
+            });
+        } ( jQuery , window, document));
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas" id="grid"></div>
+    </div>
+    <div class="container">
+        <div class="canvas" id="ant"></div>
+    </div>
+    <div id="info">
+        <h2>
+            Langton's Ant
+        </h2>
+        <p>
+            Version 1.0.0.1
+        </p>
+        <small>
+            By Jeremy Heminger
+        </small>
+        <p>
+            Description goes here... 
+        </p>
+        <div id="todo"
+        <hr />
+        <p>
+            <table>
+                <tr>
+                    <td>
+                        Iterations:
+                    </td>
+                    <td>
+                        <input type="text" id="iterations" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Nodes:
+                    </td>
+                    <td>
+                        <input type="text" id="nodes" />
+                    </td>
+                </tr>
+            </table>
+        </p>
+    </div>
+</body>
+</html>
+
