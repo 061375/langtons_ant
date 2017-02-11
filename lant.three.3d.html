@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry hierarchy</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#fff;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="../three/build/three.js"></script>
+		<script src="../three/examples/js/cameras/CombinedCamera.js"></script>
+		
+		<script>
+
+			var container, stats;
+
+			var camera, scene, renderer;
+
+			var geometry, group;
+
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+            var GRID_SIZE = 1000;
+            
+            var GRID_POINT_SIZE = 5;
+            
+            var ITERATIONS = 65000;
+            
+            var dir = 0;
+            
+            var x = 0;
+            
+            var y = 0;
+            
+			var z = 0;
+			
+			var ZDIR = 4; // make this 5 to flip the Z direction
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				//camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera = new THREE.CombinedCamera( window.innerWidth / 2, window.innerHeight / 2, 120, 1, 1000, - 500, 1000 );
+				camera.toOrthographic();
+				camera.position.z = 1000;
+                camera.position.x = -100;
+
+				scene = new THREE.Scene();
+				//scene.fog = new THREE.Fog( 0xffffff, 1, 10000 );
+
+				var geometry = new THREE.BoxGeometry( GRID_POINT_SIZE, GRID_POINT_SIZE, GRID_POINT_SIZE );
+				var material = new THREE.MeshNormalMaterial();
+
+				group = new THREE.Group();
+                
+                var c_on='#ffff00';
+                
+                var c_off='#0000ff';
+                
+                var grid = [];
+                /*
+                for ( var _x = 0; _x < GRID_SIZE; _x += GRID_POINT_SIZE) {
+                    grid[_x] = [];
+                    for ( var _y = 0; _y < GRID_SIZE; _y += GRID_POINT_SIZE ) {
+                        grid[_x][_y] = {b:0};    
+                    }
+                }
+                */
+                // this is the algorithm
+                // localize the variables
+                
+                //console.log(grid);
+                //console.log(x);
+                //console.log(y);
+                var dir = this.dir;
+                var add = false;
+                var name = '';
+				for ( var i = 0; i < ITERATIONS; i ++ ) {
+
+                    // check what color square the ant is on
+                    if (typeof grid[x] === 'undefined') {
+                        grid[x] = [];
+                    }
+                    if (typeof grid[x][y] === 'undefined') {
+                        grid[x][y] = [];
+                    }
+					if (typeof grid[x][y][z] === 'undefined') {
+                        grid[x][y][z] = {b:0};
+                    }
+                    name = x+':'+y+':'+z;
+                    if (grid[x][y][z].b == 0) {
+                        // if blue square turn right
+                        dir++;
+                        if (dir > 3)dir = 0;
+                        // change the current square color
+                        grid[x][y][z].b = 1;
+                        add = true;
+                    }else{
+                        // if there is nowhere to go on the z access then chnage z access
+						var s = 0;
+						if (typeof grid[x-GRID_POINT_SIZE] !== 'undefined') {
+							if(typeof grid[x-GRID_POINT_SIZE][y] !== 'undefined') {
+								if(typeof grid[x-GRID_POINT_SIZE][y][z] !== 'undefined') {	
+									if(grid[x-GRID_POINT_SIZE][y][z].b == 1){s++;}
+								}
+							}
+						}
+						if (typeof grid[x+GRID_POINT_SIZE] !== 'undefined') {
+							if(typeof grid[x+GRID_POINT_SIZE][y] !== 'undefined') {
+								if(typeof grid[x+GRID_POINT_SIZE][y][z] !== 'undefined') {	
+									if(grid[x+GRID_POINT_SIZE][y][z].b == 1){s++;}
+								}
+							}
+						}
+						if (typeof grid[x] !== 'undefined') {
+							if(typeof grid[x][y+GRID_POINT_SIZE] !== 'undefined') {
+								if(typeof grid[x][y+GRID_POINT_SIZE][z] !== 'undefined') {	
+									if(grid[x][y+GRID_POINT_SIZE][z].b == 1){s++;}
+								}
+							}
+						}
+						if (typeof grid[x] !== 'undefined') {
+							if(typeof grid[x][y-GRID_POINT_SIZE] !== 'undefined') {
+								if(typeof grid[x][y-GRID_POINT_SIZE][z] !== 'undefined') {	
+									if(grid[x][y-GRID_POINT_SIZE][z].b == 1){s++;}
+								}
+							}
+						}
+						if (s==4) {
+							if (typeof grid[x][y][z-GRID_POINT_SIZE] !== 'undefined') {
+								if (grid[x][y][z-GRID_POINT_SIZE].b == 1) {
+									dir = 4;
+								}else{
+									dir = 5;
+								}
+							}else{
+								if (typeof grid[x][y][z+GRID_POINT_SIZE] !== 'undefined') {
+									if (grid[x][y][z+GRID_POINT_SIZE].b == 1) {
+										dir = 4;
+									}else{
+										dir = 5;
+									}
+								}else{
+									dir = ZDIR; // reverse this
+								}
+							}
+						}else{
+							dir--;
+							if (dir < 0)dir = 3;
+						}
+                        // change the current square color
+                        grid[x][y][z].b = 0;
+                        add = false;
+                    }
+                    // move the ant in direction of 'dir'
+                    switch(dir) {
+                        case 0:y-=GRID_POINT_SIZE;break;
+                        case 1:x+=GRID_POINT_SIZE;break;
+                        case 2:y+=GRID_POINT_SIZE;break;
+                        case 3:x-=GRID_POINT_SIZE;break;
+						case 4:z+=GRID_POINT_SIZE;break;
+						case 5:z-=GRID_POINT_SIZE;break;
+                    }
+                    if (add) {
+                        var mesh = new THREE.Mesh( geometry, material );
+                        mesh.position.x = x;
+                        mesh.position.y = y;
+                        mesh.position.z = z;
+    
+                        //mesh.rotation.x = Math.random() * 2 * Math.PI;
+                        //mesh.rotation.y = Math.random() * 2 * Math.PI;
+    
+                        mesh.matrixAutoUpdate = false;
+                        mesh.updateMatrix();
+                        mesh.name = name;
+                        group.add( mesh );
+                    }else{
+                        removeEntity(name);   
+                    }
+				}
+
+				scene.add( group );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0xffffff );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.sortObjects = false;
+
+				container.appendChild( renderer.domElement );
+
+				//stats = new Stats();
+				//container.appendChild( stats.dom );
+
+			//
+
+			window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove(event) {
+
+				mouseX = ( event.clientX - windowHalfX ) * 10;
+				mouseY = ( event.clientY - windowHalfY ) * 10;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				//stats.update();
+
+			}
+
+			function render() {
+
+				var time = Date.now() * 0.001;
+
+				var rx = Math.sin( time * 0.7 ) * 0.5,
+					ry = Math.sin( time * 0.3 ) * 0.5,
+					rz = Math.sin( time * 0.2 ) * 0.5;
+
+				//camera.position.x += ( mouseX - camera.position.x ) * .05;
+				//camera.position.y += ( - mouseY - camera.position.y ) * .05;
+
+				camera.lookAt( scene.position );
+
+				//group.rotation.x++;// = rx;
+				group.rotation.y+=0.01;// = ry;
+				//group.rotation.z+=0.01;// = rz;
+
+				renderer.render( scene, camera );
+
+			}
+            function removeEntity(name/*,callback,array,i*/ ) {
+                //var selectedObject = scene.getObjectByName(object.name);
+                var selectedObject = scene.getObjectByName(name);
+                scene.remove( selectedObject );
+                //array.splice(i,1);
+                //toEnd(array,i);
+                //animate();
+                //callback();
+            }
+            function toEnd(list, position) {
+                list.push(list.splice(position, 1));
+                return list;
+            }
+
+		</script>
+
+	</body>
+</html>
